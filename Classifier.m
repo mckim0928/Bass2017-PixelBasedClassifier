@@ -8,7 +8,7 @@ classdef Classifier < handle
     %   comparison with ground truth, for test data, the classifier
     %   confidence values, or scores, are output
     %
-    %   Author:         Kyle Bradbury
+    %   Author:         Kyle Bradbury, (Sophia Park, Nikhil Vanderklaauw, Mitchell Kim)
     %   Email:          kyle.bradbury@duke.edu
     %   Organization:   Duke University Energy Initiative
     
@@ -43,13 +43,9 @@ classdef Classifier < handle
             C.trainingData = Features.dataSource ;
             values = Features.features;
             labels = Features.labels;
-            %values = vertcat(Features.features,Features2.features) ;
-            %labels = vertcat(Features.labels, Features2.labels) 
             parpool;
-            C.classifierModel = TreeBagger(20,values,labels);
-        
-            %C.classifierModel = fitcdiscr(values,labels,'DiscrimType','linear');
-            
+            %Random Forest
+            C.classifierModel = TreeBagger(20,values,labels);    
             C.status = 'trained' ;
         end
         
@@ -64,16 +60,7 @@ classdef Classifier < handle
                 fprintf('Classifying data with %s...\n', C.type)
                 % Generate result
                 [~, score] = predict(C.classifierModel,Features.features) ;
-                %cmValid = reshape(score(:,2),Features.dataSource.imageSize(1:2));
-                %medFilt = medfilt2(cmValid,[4 4]);
-                %SE = strel('disk',4);
-                %opened = imopen(medFilt, SE);
-                %trainingScores = imclose(opened,SE);
-
-                %result = Result(trainingScores(:),Features.labels,Features.dataSource,C.trainingData) ;
                 result = Result(score(:,2),Features.labels,Features.dataSource,C.trainingData) ;
-            
-            
             else
                 error('Classifier must be trained')
             end
@@ -88,7 +75,8 @@ classdef Classifier < handle
         function scores = classifyTestData(C,Features)
             if strcmp(C.status,'trained')
                 fprintf('Classifying data with %s...\n', C.type)
-                % Generate result
+               
+               % Generate result
                 [~, score] = predict(C.classifierModel,Features.features) ;
                 cmValid4 = reshape(score,Features.imageSize);
                 medFilt4 = medfilt2(cmValid4,[4 4]);
@@ -96,7 +84,6 @@ classdef Classifier < handle
                 opened4 = imopen(medFilt4, SE);
                 trainingScores4 = imclose(opened4,SE);
                 scores = trainingScores4(:); %overwriting the score w/ this new PostProcess
-                %result = Result(scores(:,2),Features.labels,Features.dataSource,C.testingData) ;
                 
             else
                 error('Classifier must be trained')
