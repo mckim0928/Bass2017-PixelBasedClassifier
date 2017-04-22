@@ -4,7 +4,7 @@ classdef Features < handle
     %   The Features class takes a Data class object as an input and
     %   extracts features from it for use with the Classifier class.
     %
-    %   Author:         Kyle Bradbury
+    %   Author:         Kyle Bradbury, (Sophia Park, Nikhil Vanderklaauw, Mitchell Kim)
     %   Email:          kyle.bradbury@duke.edu
     %   Organization:   Duke University Energy Initiative
     
@@ -60,19 +60,16 @@ classdef Features < handle
             nPixelsGrad = numel(find(edgeMask));
             
             % Extract each of the three color channels
-            
             img = F.dataSource.imageData;
             pixels = im2double(img(:,:,1:3)) ;
             HSVimg = rgb2hsv(img(:,:,1:3));
             grayimg = rgb2gray(img(:,:,1:3));
             grayBorder = grayimg;
             
-            
             % Initialize feature vector
-            F.features = nan(F.dataSource.nPixels,F.nFeatures) ;
-            %[Gmag, Gdir] = imgradient(grayimg);
+            F.features = nan(F.dataSource.nPixels,F.nFeatures) ;            
             
-            
+            %For each R,G,B channel
             for iChannel = 1:3
                 % Extract features
                 cChannel = squeeze(double(img(:,:,iChannel))) ;
@@ -93,91 +90,32 @@ classdef Features < handle
                 F.features(:,6+2*iChannel)       = cChannelHSVVariance(:) ;
                 
             end
+                %Entropy Filter
                 entropyImg = entropyfilt(grayimg);
                 F.features(:,13) = entropyImg(:);
                 
+                %Standard Deviation Filter
                 stdImg = stdfilt(grayimg);
                 F.features(:,14) = stdImg(:);
                 
+                %Gradient Filter (Edge Detection)
                 sobelMaskx = (1/8).*[-1 0 1; -2 0 2; -1 0 1];
                 sobelMasky = (1/8).*[1 2 1; 0 0 0; -1 -2 -1];
                 sobelRingx = conv2(edgeMask,sobelMaskx,'same');
                 sobelRingy = conv2(edgeMask,sobelMasky,'same');
                 grayimg = double(grayimg);
                 edgeGradient = (1/nPixelsGrad) * (abs(conv2(grayimg,sobelRingx,'same'))+abs(conv2(grayimg,sobelRingy,'same')));
-                
                 F.features(:,15) = edgeGradient(:);
                 
-                
+                %NDVI Filter
                 IRChannel = squeeze(double(img(:,:,4))) ;
                 RChannel = squeeze(double(img(:,:,1))) ;
                 NDVI = (IRChannel-RChannel)/(IRChannel+RChannel);
-                
                 F.features(:,16) = NDVI(:);
-                                
+                
+                %Ratio Map of Saturation and Intensity
                 Rs = (HSVimg(:,:,2)-HSVimg(:,:,3))./(HSVimg(:,:,2)+HSVimg(:,:,3));
                 F.features(:,17) = Rs(:);
-                
-               % normMax = [255,255^2,255,255^2,255,255^2,1,1,1,1,1,1,6.5,255,7,1,1];
-                
-              %  [X,Y] = meshgrid(normMax,1:length(F.features));
-                
-               % normFeats = ((F.features./X).*65535);
-                
-               % F.features = uint16(normFeats);
-                
-                
-                
-                %imgSize = size(grayimg);
-                 %8
-%            for p=1:numel(grayimg)
-%                 [rowP, colP] = ind2sub(imgSize,p);
-%                 maxRow = imgSize(1);
-%                 maxCol = imgSize(2);
-%                 
-%                 if rowP-eps < 1
-%                     up = 1;
-%                 else
-%                     up = rowP-eps;
-%                 end
-%                 if colP-eps < 1
-%                     left = 1;
-%                 else
-%                     left = colP-eps;
-%                 end
-%                 if rowP+eps > maxRow
-%                     down = maxRow;
-%                 else
-%                     down =  rowP + eps;
-%                 end
-% 
-%                 if colP+eps > maxCol
-%                     right = maxCol;
-%                 else
-%                     right = colP+eps;
-%                 end
-%                 regionImg = double(grayimg(up:down,left:right,:));
-%                 regionImg = (regionImg ./ 255);
-%                 [glcms,SI] = graycomatrix(regionImg,'offset',[-1 1;-1 -1;1 -1; 1 1]);
-%                 %fprintf('at gray stats');
-%                 %grayStats = graycoprops(glcms);
-%                % fprintf('finished graystats');
-%                 F.features(p,18:21) = grayStats.Contrast;               
-%                 F.features(p,22:25) = grayStats.Correlation;
-%                 F.features(p,26:29) = grayStats.Energy;
-%                 F.features(p,30:33) = grayStats.Homogeneity;
-%                 
-%            end
-              
-                
-%                 [Gmag, Gdir] = imgradient(rgb2gray(img));
-%                 F.features(:,7) = Gmag(:);
-%                 F.features(:,8) = Gdir(:);
-%                  
-%                 cornerMetric = cornermetric(rgb2gray(img));
-%                 cornerMetric = imhmax(cornerMetric, mean(cornerMetric(:))+2*std(cornerMetric(:)));
-%                 cornerMax = ordfilt2(cornerMetric,5*5,ones(5,5));
-%                 F.features(:,9) = cornerMax(:);
         end
         
         %------------------------------------------------------------------
