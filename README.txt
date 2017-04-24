@@ -1,4 +1,6 @@
 # Bass2017-PixelBasedClassifier
+This code was adapted from Kyle Bradbury's code used by Energy Data Analytics Lab team in Kaggle Competition Fall 2016. 
+
 This is the comprehensive code for building detection from aerial images using a random-forest classifier.
 
 The code is split into function files that perform various tasks (classification, feature extraction, data/file location, result generation and run initialization).
