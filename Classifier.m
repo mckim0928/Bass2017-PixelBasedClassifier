@@ -60,7 +60,14 @@ classdef Classifier < handle
                 fprintf('Classifying data with %s...\n', C.type)
                 % Generate result
                 [~, score] = predict(C.classifierModel,Features.features) ;
-                result = Result(score(:,2),Features.labels,Features.dataSource,C.trainingData) ;
+                cmValid = reshape(score(:,2),Features.imageSize);
+                
+                % Applying morpoholical operations on the confidence map
+                medFilt = medfilt2(cmValid,[4 4]);
+                SE = strel('disk',4);
+                opened = imopen(medFilt, SE);
+                ValidScore = imclose(opened,SE);
+                result = Result(ValidScore(:),Features.labels,Features.dataSource,C.trainingData) ;
             else
                 error('Classifier must be trained')
             end
@@ -78,12 +85,13 @@ classdef Classifier < handle
                
                % Generate result
                 [~, score] = predict(C.classifierModel,Features.features) ;
-                cmValid4 = reshape(score,Features.imageSize);
-                medFilt4 = medfilt2(cmValid4,[4 4]);
+                cmValid = reshape(score,Features.imageSize);
+                
+                % Applying morpoholical operations on the confidence map
+                medFilt = medfilt2(cmValid,[4 4]);
                 SE = strel('disk',4);
-                opened4 = imopen(medFilt4, SE);
-                trainingScores4 = imclose(opened4,SE);
-                scores = trainingScores4(:); %overwriting the score w/ this new PostProcess
+                opened = imopen(medFilt, SE);
+                scores = imclose(opened,SE);
                 
             else
                 error('Classifier must be trained')
